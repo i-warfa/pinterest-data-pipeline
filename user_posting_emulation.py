@@ -12,14 +12,15 @@ from dotenv import load_dotenv
 import os
 
 
-load_dotenv(dotenv_path="./creds.env", verbose=True, override=True)
+load_dotenv(dotenv_path="./creds/credentials.env", verbose=True, override=True)
 creds = {
     "host": os.environ.get("host"),
     "database": os.environ.get("database"),
     "user": os.environ.get("user"),
     "password": os.environ.get("password"),
     "port": os.environ.get("port"),
-    "invoke_url": os.environ.get("invoke_url")
+    "iam_user": os.environ.get("iam_user_id"),
+    "invoke_url": os.environ.get("invoke_url"),
 }
 
 random.seed(100)
@@ -35,7 +36,8 @@ class AWSDBConnector:
 
     def create_db_connector(self):
         engine = sqlalchemy.create_engine(
-            f"mysql+pymysql://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DATABASE}")
+            f"mysql+pymysql://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DATABASE}"
+        )
         return engine
 
 
@@ -67,8 +69,8 @@ def run_infinite_post_data_loop():
             for row in user_selected_row:
                 user_result = dict(row._mapping)
 
-            invoke_url = creds["invoke_url"] + "/topics/" + "{}"
-            
+            invoke_url = creds["invoke_url"] + "/topics/" + creds["iam_user"] + "{}"
+
             payload_pin = json.dumps(
                 {
                     "records": [
@@ -90,9 +92,9 @@ def run_infinite_post_data_loop():
                         }
                     ]
                 },
-            ensure_ascii=False,
-            indent=4,
-            default=str
+                ensure_ascii=False,
+                indent=4,
+                default=str,
             )
 
             payload_geo = json.dumps(
@@ -109,9 +111,9 @@ def run_infinite_post_data_loop():
                         }
                     ]
                 },
-            ensure_ascii=False,
-            indent=4,
-            default=str
+                ensure_ascii=False,
+                indent=4,
+                default=str,
             )
 
             payload_user = json.dumps(
@@ -128,19 +130,24 @@ def run_infinite_post_data_loop():
                         }
                     ]
                 },
-            ensure_ascii=False,
-            indent=4,
-            default=str
+                ensure_ascii=False,
+                indent=4,
+                default=str,
             )
 
             headers = {"Content-Type": "application/vnd.kafka.json.v2+json"}
-            
-            response_pin = requests.request("POST", invoke_url.format("0eb5ba52116f.pin"), headers=headers, data=payload_pin)
-            response_geo = requests.request("POST", invoke_url.format("0eb5ba52116f.geo"), headers=headers, data=payload_geo)
-            response_user = requests.request("POST", invoke_url.format("0eb5ba52116f.user"), headers=headers, data=payload_user)
 
+            response_pin = requests.request(
+                "POST", invoke_url.format(".pin"), headers=headers, data=payload_pin
+            )
+            response_geo = requests.request(
+                "POST", invoke_url.format(".geo"), headers=headers, data=payload_geo
+            )
+            response_user = requests.request(
+                "POST", invoke_url.format(".user"), headers=headers, data=payload_user
+            )
 
 
 if __name__ == "__main__":
-    run_infinite_post_data_loop()
+    # run_infinite_post_data_loop()
     print("Working")
