@@ -1,4 +1,4 @@
 0eb5ba52116f-key-pair.pem
-creds.env
+creds/
 test.py
 api_post_request_example.py
