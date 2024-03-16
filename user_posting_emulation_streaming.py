@@ -43,8 +43,6 @@ class AWSDBConnector:
 
 new_connector = AWSDBConnector()
 
-# invoke_url = creds["invoke_url"] + "{}" + "/record"
-
 
 def run_infinite_post_data_loop():
     while True:
