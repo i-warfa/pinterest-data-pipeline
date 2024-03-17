@@ -38,7 +38,7 @@
 ### Stream Processing
 
 - Create 3 `Kinesis` data streams corresponding to the 3 pinterest tables to collect, process, and analyze data streams in real time.
-- Configure the previous `REST API` to allow for to allow it to invoke `Kineses` actions.
+- Configure the previous `REST API` to allow it to invoke `Kineses` actions.
 - Send data to the `Kinesis` streams using the `REST API`.
 - Read the data from the `Kinesis` streams within a Databricks Notebook, create streaming dataframes for the each of the 3 `Kinesis` data streams and transform the data using spark queries.
 - Write each stream to a `Delta Table`. 
@@ -149,34 +149,38 @@ You should find the uploaded file within the `S3` bucket
 
 ![Proxy Integration](./images/REST_API_proxy_integration.png)
 
-- Step 2: For the proxy resource, create a HTTP ANY method. For the Endpoint URL, The endpoint URL should include the public ipv4 DNS of the `EC2` kafka client with the following format: http://KafkaClientEC2InstancePublicDNS:8082/{proxy} 
+- Step 2: For the proxy resource, create a HTTP ANY method. For the Endpoint URL, it should include the public ipv4 DNS of the `EC2` kafka client with the following format: http://KafkaClientEC2InstancePublicDNS:8082/{proxy} 
 
 - Step 3: Deploy the API and make note of the `Invoke URL`.
   
 ## Configure REST proxy on EC2 client
-
+The endpoint URL
 - Step 1: Install confluent REST:
   
   * `sudo wget https://packages.confluent.io/archive/7.2/confluent-7.2.0.tar.gz`
   * `tar -xvzf confluent-7.2.0.tar.gz`
 
-- Step 2: Navigate to `confluent-7.2.0/etc/kafka-rest` and modify the `kafka-rest.properties` file similar to the `client.properties` file, however this time add "client." before each of the 4 variables. To allow communication between the REST proxy and the cluster brokers, all configurations should be prefixed with client. Also change the `zookeeper.connect` and `bootstrap.severs` variables in the file, these were obtained during the [AWS MSK Configuration](#aws-msk-configuration) section.
+- Step 2: Modify the `kafka-rest.properties` file.
+    
+    * Navigate to `confluent-7.2.0/etc/kafka-rest` and modify the `kafka-rest.properties` file similar to the `client.properties` file, however this time add "client." before each of the 4 variables. To allow communication between the REST proxy and the cluster brokers, all configurations should be prefixed with "client.". 
+    
+    * Modify the `zookeeper.connect` and `bootstrap.severs` variables in the file, these were obtained during the [AWS MSK Configuration](#aws-msk-configuration) section.
   
 - Step 4: Messages can now be produced to the kafka cluster by navigating to the `confluent-7.2.0/bin` directory and running:
 
   `./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.properties`
 
-- Step 5: Run the [Batch Data Script](./user_posting_emulation.py). This script sends data from the 3 tables to their corresponding Kafka topic. Data passing through the `AWS MSK` cluster should be falling into the `S3` bucket.
+- Step 5: Run the [Batch Data Script](./user_posting_emulation.py). This script sends data from the 3 tables to their corresponding Kafka topics. Data passing through the `AWS MSK` cluster should be falling into the `S3` bucket.
 
 ![Topic S3 Bucket](./images/s3_bucket_topics.png)
 
 ## Data Processing on Databricks
 
-Using Databricks, we can provision cluster running `Apache Spark` to run spark queries for data transformations. See [Batch Processing Notebook](./Databricks_Notebooks/batch_processing_databricks.ipynb) and [Stream Processing Notebook](./Databricks_Notebooks/stream_processing_databricks.ipynb) for a comprehensive guide.
+Using Databricks, we can provision a cluster running `Apache Spark` to run spark queries for data transformations. See [Batch Processing Notebook](./Databricks_Notebooks/batch_processing_databricks.ipynb) and [Stream Processing Notebook](./Databricks_Notebooks/stream_processing_databricks.ipynb) for a comprehensive guide.
 
 ### Batch Processing: Databricks
 
-- Step 1: Create a [Databricks Notebook](./Databricks_Notebooks/batch_processing_databricks.ipynb) for batch processing and read the `AWS Credentials` that have been uploaded to a Databrick `Delta Table` and mount the `S3` bucket to Databricks.
+- Step 1: Create a [Databricks Notebook](./Databricks_Notebooks/batch_processing_databricks.ipynb) for batch processing and read the `AWS Credentials` that have been uploaded to a Databricks `Delta Table` and mount the `S3` bucket to Databricks.
   
     ```python
     aws_keys_df = spark.read.format("delta").load(delta_table_path)
