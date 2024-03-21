@@ -21,7 +21,7 @@
 
 ## Overview
 
-> The purpose of this project is to build an end-to-end AWS-hosted data engineering pipeline, supporting both batch and stream processing using pinterest's experimental dataset.
+> The purpose of this project is to build an end-to-end AWS-hosted data engineering pipeline, supporting both batch and stream processing using pinterest's experiment processing pipeline.
 
 ### Batch Processing
 
